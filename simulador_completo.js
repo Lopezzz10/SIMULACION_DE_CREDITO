@@ -11,6 +11,7 @@ let creditoAprobado = false;
 function ocultarSecciones() {
     document.getElementById("parametros").classList.remove("activa");
     document.getElementById("clientes").classList.remove("activa");
+    document.getElementById("credito").classList.remove("activa");
 }
 
 function mostrarSeccion(id) {
@@ -31,28 +32,28 @@ function guardarTasa() {
 }
 
 function guardarCliente() {
-    let cedula   = recuperarTexto("cedula");
-    let nombre   = recuperarTexto("nombre");
+    let cedula = recuperarTexto("cedula");
+    let nombre = recuperarTexto("nombre");
     let apellido = recuperarTexto("apellido");
     let ingresos = recuperarFloat("ingresos");
-    let egresos  = recuperarFloat("egresos");
+    let egresos = recuperarFloat("egresos");
 
     let existente = buscarCliente(cedula);
 
-    if(existente === null){
+    if (existente === null) {
         let cliente = {
-            cedula:   cedula,
-            nombre:   nombre,
+            cedula: cedula,
+            nombre: nombre,
             apellido: apellido,
             ingresos: ingresos,
-            egresos:  egresos
+            egresos: egresos
         };
         clientes.push(cliente);
     } else {
-        existente.nombre   = nombre;
+        existente.nombre = nombre;
         existente.apellido = apellido;
         existente.ingresos = ingresos;
-        existente.egresos  = egresos;
+        existente.egresos = egresos;
     }
 
     pintarClientes();
@@ -65,41 +66,92 @@ function pintarClientes() {
     for (let i = 0; i < clientes.length; i++) {
         let c = clientes[i];
         let fila = "<tr>" +
-            "<td>" + c.cedula   + "</td>" +
-            "<td>" + c.nombre   + "</td>" +
+            "<td>" + c.cedula + "</td>" +
+            "<td>" + c.nombre + "</td>" +
             "<td>" + c.apellido + "</td>" +
             "<td>" + c.ingresos + "</td>" +
-            "<td>" + c.egresos  + "</td>" +
+            "<td>" + c.egresos + "</td>" +
             "<td><button onclick=\"seleccionarCliente('" + c.cedula + "')\">Actualizar</button></td>" +
-        "</tr>";
+            "</tr>";
         tbody.innerHTML += fila;
     }
 }
 
-function buscarCliente(cedula){
-  for(let i = 0; i < clientes.length;i++){
-    if(clientes[i].cedula== cedula ){
-      return clientes[i]
+function buscarCliente(cedula) {
+    for (let i = 0; i < clientes.length; i++) {
+        if (clientes[i].cedula == cedula) {
+            return clientes[i]
+        }
     }
-  }
-  return null
+    return null
 }
 
-function seleccionarCliente(cedula){
+function seleccionarCliente(cedula) {
     let cliente = buscarCliente(cedula);
     clienteSeleccionado = cliente;
-    
-    mostrarTextoEnCaja("cedula",   cliente.cedula);
-    mostrarTextoEnCaja("nombre",   cliente.nombre);
+
+    mostrarTextoEnCaja("cedula", cliente.cedula);
+    mostrarTextoEnCaja("nombre", cliente.nombre);
     mostrarTextoEnCaja("apellido", cliente.apellido);
     mostrarTextoEnCaja("ingresos", cliente.ingresos);
-    mostrarTextoEnCaja("egresos",  cliente.egresos);
+    mostrarTextoEnCaja("egresos", cliente.egresos);
 }
 
-function limpiar(){
-    mostrarTextoEnCaja("cedula",   "");
-    mostrarTextoEnCaja("nombre",   "");
+function limpiar() {
+    mostrarTextoEnCaja("cedula", "");
+    mostrarTextoEnCaja("nombre", "");
     mostrarTextoEnCaja("apellido", "");
     mostrarTextoEnCaja("ingresos", "");
-    mostrarTextoEnCaja("egresos",  "");
+    mostrarTextoEnCaja("egresos", "");
+}
+function buscarClienteCredito() {
+    let cedula = recuperarTexto("buscarCedulaCredito");
+    let cliente = buscarCliente(cedula);
+    let datosClienteCredito = document.getElementById("datosClienteCredito");
+
+    if (cliente === null) {
+        datosClienteCredito.innerHTML = "<p>Cliente no encontrado.</p>";
+        clienteSeleccionado = null;
+    } else {
+        clienteSeleccionado = cliente;
+        datosClienteCredito.innerHTML = `
+            <h3>Datos del Cliente</h3>
+            <p><strong>Cédula:</strong> ${cliente.cedula}</p>
+            <p><strong>Nombre:</strong> ${cliente.nombre}</p>
+            <p><strong>Apellido:</strong> ${cliente.apellido}</p>
+            <p><strong>Ingresos:</strong> ${cliente.ingresos}</p>
+            <p><strong>Egresos:</strong> ${cliente.egresos}</p>
+        `;
+    }
+}
+
+function calcularCredito() {
+    if (clienteSeleccionado === null) {
+        alert("Primero busca un cliente.");
+        return;
+    }
+
+    let monto = recuperarFloat("montoCredito");
+    let plazo = recuperarInt("plazoCredito");
+
+    let capacidadPago = clienteSeleccionado.ingresos - clienteSeleccionado.egresos;
+    let totalPagar = monto + (monto * tasaInteres / 100);
+    let cuotaMensual = totalPagar / plazo;
+
+    creditoAprobado = cuotaMensual <= capacidadPago;
+
+    let resultadoCredito = document.getElementById("resultadoCredito");
+
+    resultadoCredito.innerHTML = `
+        Capacidad de pago: ${capacidadPago.toFixed(2)}<br>
+        Total a pagar: ${totalPagar.toFixed(2)}<br>
+        Cuota mensual: ${cuotaMensual.toFixed(2)}<br>
+        RESULTADO: ${creditoAprobado ? "APROBADO" : "RECHAZADO"}
+    `;
+
+    if (creditoAprobado) {
+        resultadoCredito.className = "aprobado";
+    } else {
+        resultadoCredito.className = "rechazado";
+    }
 }

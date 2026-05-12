@@ -71,7 +71,10 @@ function pintarClientes() {
             "<td>" + c.apellido + "</td>" +
             "<td>" + c.ingresos + "</td>" +
             "<td>" + c.egresos + "</td>" +
-            "<td><button onclick=\"seleccionarCliente('" + c.cedula + "')\">Actualizar</button></td>" +
+            "<td>" +
+                "<button onclick=\"seleccionarCliente('" + c.cedula + "')\">Actualizar</button> " +
+                "<button class=\"btn-eliminar\" onclick=\"eliminarCliente('" + c.cedula + "')\">Eliminar</button>" +
+            "</td>" +
             "</tr>";
         tbody.innerHTML += fila;
     }
@@ -153,5 +156,26 @@ function calcularCredito() {
         resultadoCredito.className = "aprobado";
     } else {
         resultadoCredito.className = "rechazado";
+    }
+}
+
+function eliminarCliente(cedula) {
+    let confirmacion = confirm("¿Está seguro de que desea eliminar al cliente con cédula " + cedula + "?");
+    if (!confirmacion) {
+        return;
+    }
+
+    let indice = -1;
+    for (let i = 0; i < clientes.length; i++) {
+        if (clientes[i].cedula == cedula) {
+            indice = i;
+            break;
+        }
+    }
+
+    if (indice !== -1) {
+        clientes.splice(indice, 1);
+        pintarClientes();
+        limpiar();
     }
 }

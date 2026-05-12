@@ -5,13 +5,14 @@ let tasaInteres = 15;
 let clienteSeleccionado = null;
 let cuotaCalculada = 0;
 let montoCalculado = 0;
-let plazoCalculado = 0;
+let plazoIngresado = 0;
 let creditoAprobado = false;
 
 function ocultarSecciones() {
     document.getElementById("parametros").classList.remove("activa");
     document.getElementById("clientes").classList.remove("activa");
     document.getElementById("credito").classList.remove("activa");
+    document.getElementById("listaCreditos").classList.remove("activa");
 }
 
 function mostrarSeccion(id) {
@@ -83,10 +84,10 @@ function pintarClientes() {
 function buscarCliente(cedula) {
     for (let i = 0; i < clientes.length; i++) {
         if (clientes[i].cedula == cedula) {
-            return clientes[i]
+            return clientes[i];
         }
     }
-    return null
+    return null;
 }
 
 function seleccionarCliente(cedula) {
@@ -107,6 +108,7 @@ function limpiar() {
     mostrarTextoEnCaja("ingresos", "");
     mostrarTextoEnCaja("egresos", "");
 }
+
 function buscarClienteCredito() {
     let cedula = recuperarTexto("buscarCedulaCredito");
     let cliente = buscarCliente(cedula);
@@ -143,6 +145,10 @@ function calcularCredito() {
 
     creditoAprobado = cuotaMensual <= capacidadPago;
 
+    montoCalculado = monto;
+    cuotaCalculada = cuotaMensual;
+    plazoIngresado = plazo;
+
     let resultadoCredito = document.getElementById("resultadoCredito");
 
     resultadoCredito.innerHTML = `
@@ -157,6 +163,31 @@ function calcularCredito() {
     } else {
         resultadoCredito.className = "rechazado";
     }
+
+    // Habilitar o deshabilitar botón Asignar Crédito
+    document.getElementById("btnAsignarCredito").disabled = !creditoAprobado;
+}
+
+function asignarCredito() {
+    if (!creditoAprobado || clienteSeleccionado === null) {
+        alert("No se puede asignar un crédito rechazado.");
+        return;
+    }
+
+    let credito = {
+        cedula: clienteSeleccionado.cedula,
+        nombre: clienteSeleccionado.nombre,
+        apellido: clienteSeleccionado.apellido,
+        monto: montoCalculado,
+        tasa: tasaInteres,
+        plazo: plazoIngresado,
+        cuota: cuotaCalculada
+    };
+
+    creditos.push(credito);
+    alert("Crédito asignado correctamente a " + credito.nombre + " " + credito.apellido + ".");
+
+    document.getElementById("btnAsignarCredito").disabled = true;
 }
 
 function eliminarCliente(cedula) {
@@ -178,4 +209,47 @@ function eliminarCliente(cedula) {
         pintarClientes();
         limpiar();
     }
+}
+
+function solicitarCredito() {
+    alert("Crédito solicitado.");
+}
+
+function buscarCreditos(cedula) {
+    let resultado = [];
+    for (let i = 0; i < creditos.length; i++) {
+        if (creditos[i].cedula == cedula) {
+            resultado.push(creditos[i]);
+        }
+    }
+    return resultado;
+}
+
+function pintarCreditos(listado) {
+    let tbody = document.getElementById("tablaCreditos");
+    tbody.innerHTML = "";
+
+    for (let i = 0; i < listado.length; i++) {
+        let c = listado[i];
+        let fila = "<tr>" +
+            "<td>" + c.cedula + "</td>" +
+            "<td>" + c.nombre + "</td>" +
+            "<td>" + c.apellido + "</td>" +
+            "<td>" + c.monto.toFixed(2) + "</td>" +
+            "<td>" + c.tasa + "%</td>" +
+            "<td>" + c.plazo + " meses</td>" +
+            "<td>" + c.cuota.toFixed(2) + "</td>" +
+            "</tr>";
+        tbody.innerHTML += fila;
+    }
+
+    if (listado.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='7'>No se encontraron créditos.</td></tr>";
+    }
+}
+
+function buscarCreditosCliente() {
+    let cedula = recuperarTexto("buscarCedulaListado");
+    let resultado = buscarCreditos(cedula);
+    pintarCreditos(resultado);
 }

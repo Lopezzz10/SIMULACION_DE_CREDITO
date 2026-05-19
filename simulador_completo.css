@@ -115,3 +115,8 @@
 .btn-eliminar:hover {
     background: #922b21;
 }
+
+.perfil-foto {
+    width: 150px;
+    height: 180px;
+}
